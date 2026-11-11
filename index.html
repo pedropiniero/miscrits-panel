@@ -133,7 +133,7 @@ summary{cursor:pointer;color:var(--muted)}
 'use strict';
 var BASE='https://ntfy.sh/';
 var CHOICES=[
-  {k:'auto',  t:'Que el bot lo capture', s:'Ataca suave hasta 90 % y guarda solo rango S o S+', cls:'go'},
+  {k:'auto',  t:'Que el bot lo capture', s:'Ataca suave hasta 90 % y guarda solo rango S o S+. Es lo que hace solo si no respondés.', cls:'go'},
   {k:'manual',t:'Lo capturo yo',         s:'El bot se detiene y deja la pelea abierta', cls:''},
   {k:'seguir',t:'Seguir peleando',       s:'Lo ignora y ataca normal', cls:''},
   {k:'parar', t:'Parar el bot',          s:'Se detiene en este punto', cls:'stop'}
@@ -163,7 +163,7 @@ function handle(m){
     if(Date.now()/1000-m.time<180&&Date.now()-startedAt>1500)announce(c);
   }else if(tags.indexOf('ack')>=0&&id){
     var ch=tagVal(tags,'ch-');
-    S.cards.forEach(function(x){if(x.id===id){x.status='ack';x.choice=ch||x.choice}});
+    S.cards.forEach(function(x){if(x.id===id){x.status='ack';x.choice=ch||x.choice;x.timeout=tags.indexOf('timeout')>=0}});
   }else if(m.message){
     S.log.unshift({time:m.time,text:m.message});
   }
@@ -194,7 +194,7 @@ function render(){
   var box=$('alerts');box.textContent='';
   var now=Date.now()/1000;
   S.cards.forEach(function(c){
-    var open=c.status==='pending'&&now-c.time<1800;
+    var open=c.status==='pending'&&now-c.time<75;
     var card=el('article','card'+(c.blight?' blight':''));
     var shot=el('div','shot');
     if(c.img){var im=new Image();im.alt='Foto del Miscrit nuevo';im.src=c.img;im.onerror=function(){shot.textContent='';shot.appendChild(el('div','gone','La foto ya venció (se guarda unas horas).'))};shot.appendChild(im)}
@@ -202,9 +202,10 @@ function render(){
     var body=el('div','body');
     var top=el('div','top');top.appendChild(el('h3','',c.blight?'Parece un Blighted':'Miscrit nuevo'));
     if(c.blight)top.appendChild(el('span','chip bl','Blighted'));
-    var st=c.status==='ack'?['done','El bot lo recibió']:c.status==='sent'?['wait','Enviando…']:open?['wait','Esperando tu elección']:['','Vencido'];
+    var st=c.status==='ack'?['done','El bot lo recibió']:c.status==='sent'?['wait','Enviando…']:open?['wait','Esperando tu elección']:['','Sin respuesta: lo captura solo'];
     top.appendChild(el('span','chip '+st[0],st[1]));top.appendChild(el('span','time',hhmm(c.time)));
     body.appendChild(top);
+    if(open)body.appendChild(el('div','muted','Tenés 1 minuto. Si no elegís, el bot intenta capturarlo solo para no perder la pelea.'));
     var ch=el('div','choices');
     CHOICES.forEach(function(o){
       var b=el('button','ch '+o.cls+(c.choice===o.k?' picked':''));b.type='button';
@@ -213,7 +214,8 @@ function render(){
       ch.appendChild(b);
     });
     body.appendChild(ch);
-    if(c.choice&&c.status!=='pending')body.appendChild(el('div','result',(LABEL[c.choice]||c.choice)+(c.status==='ack'?'. Confirmado por el bot.':'.')));
+    if(c.status==='ack'&&c.timeout)body.appendChild(el('div','result','No elegiste en 1 minuto: el bot intentó capturarlo solo.'));
+    else if(c.choice&&c.status!=='pending')body.appendChild(el('div','result',(LABEL[c.choice]||c.choice)+(c.status==='ack'?'. Confirmado por el bot.':'.')));
     card.appendChild(shot);card.appendChild(body);box.appendChild(card);
   });
   var connected=!!S.topic;
