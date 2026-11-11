@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0e1913">
+<title>Panel Miscrits</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Layout: una columna de tarjetas de aviso (foto grande + botones de decision) bajo una barra de estado; en pantalla ancha, foto a la izquierda y botones a la derecha. */
+:root{
+  --bg:#f3f1e8; --surface:#ffffff; --surface2:#ebe8da; --fg:#16231a; --muted:#5d6b61; --line:#d4d0bd;
+  --gold:#b87d00; --gold-ink:#ffffff; --blight:#7a2fb8; --danger:#b3261e; --ok:#2f8f4e;
+  --font-d:'Baloo 2','Trebuchet MS',system-ui,sans-serif; --font-b:Inter,system-ui,-apple-system,'Segoe UI',sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0e1913; --surface:#16281d; --surface2:#1d3326; --fg:#e8efe6; --muted:#93a898; --line:#2a4132;
+  --gold:#f2b632; --gold-ink:#1b1400; --blight:#c98bff; --danger:#ff7a6e; --ok:#5fd48a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e1913; --surface:#16281d; --surface2:#1d3326; --fg:#e8efe6; --muted:#93a898; --line:#2a4132;
+  --gold:#f2b632; --gold-ink:#1b1400; --blight:#c98bff; --danger:#ff7a6e; --ok:#5fd48a; color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--fg);font:15px/1.45 var(--font-b);
+  padding-block:0 32px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-top:env(safe-area-inset-top,0px);min-height:100vh}
+.wrap{max-width:880px;margin:0 auto}
+header{display:flex;align-items:center;gap:12px;padding:18px 0 14px;flex-wrap:wrap}
+.logo{width:38px;height:38px;border-radius:10px;flex:none}
+h1{font:800 26px/1 var(--font-d);margin:0;letter-spacing:.2px}
+.status{margin-left:auto;display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--muted)}
+.dot.on{background:var(--ok);box-shadow:0 0 0 4px color-mix(in srgb,var(--ok) 25%,transparent)}
+.dot.off{background:var(--danger)}
+.gear{background:none;border:1px solid var(--line);color:var(--fg);border-radius:10px;padding:6px 10px;font:inherit;cursor:pointer}
+button{font:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:16px}
+.panel h2{font:600 18px/1.2 var(--font-d);margin:0 0 6px}
+.muted{color:var(--muted)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+input[type=text]{flex:1;min-width:0;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:inherit}
+.btn{border:1px solid var(--line);background:var(--surface2);color:var(--fg);border-radius:12px;padding:10px 14px;font-weight:600}
+.btn.primary{background:var(--gold);border-color:var(--gold);color:var(--gold-ink)}
+.alerts{display:flex;flex-direction:column;gap:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden;display:grid;grid-template-columns:1fr;position:relative}
+.card.blight{border-color:var(--blight);box-shadow:0 0 0 2px color-mix(in srgb,var(--blight) 35%,transparent)}
+.shot{background:#000;aspect-ratio:16/9;display:grid;place-items:center;min-width:0}
+.shot img{width:100%;height:100%;object-fit:contain;display:block}
+.shot .gone{color:#9aa;padding:16px;text-align:center}
+.body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.top h3{font:800 20px/1.1 var(--font-d);margin:0}
+.chip{font-size:12px;font-weight:600;border-radius:999px;padding:3px 10px;border:1px solid var(--line);color:var(--muted)}
+.chip.bl{border-color:var(--blight);color:var(--blight)}
+.chip.wait{border-color:var(--gold);color:var(--gold)}
+.chip.done{border-color:var(--ok);color:var(--ok)}
+.time{margin-left:auto;color:var(--muted);font-size:13px;font-variant-numeric:tabular-nums}
+.choices{display:grid;grid-template-columns:1fr;gap:8px}
+.ch{text-align:left;border:1px solid var(--line);background:var(--surface2);color:var(--fg);border-radius:12px;padding:11px 14px;display:flex;flex-direction:column;gap:2px;min-height:56px}
+.ch b{font-weight:600}
+.ch span{font-size:13px;color:var(--muted)}
+.ch.go{background:var(--gold);border-color:var(--gold);color:var(--gold-ink)}
+.ch.go span{color:color-mix(in srgb,var(--gold-ink) 75%,transparent)}
+.ch.stop{border-color:var(--danger)}
+.ch.stop b{color:var(--danger)}
+.ch[disabled]{opacity:.45;cursor:default}
+.ch.picked{opacity:1;outline:3px solid var(--ok)}
+.result{font-size:14px;color:var(--ok);font-weight:600}
+.log{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.log li{display:flex;gap:10px;font-size:13px;color:var(--muted)}
+.log time{font-variant-numeric:tabular-nums;flex:none}
+.empty{text-align:center;padding:34px 16px}
+.empty h2{font-size:20px}
+details{margin-top:8px}
+summary{cursor:pointer;color:var(--muted)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:12px;max-width:90vw;z-index:5}
+@media (min-width:760px){
+  .card{grid-template-columns:1.25fr 1fr}
+  .shot{aspect-ratio:auto;min-height:260px}
+}
+@media (prefers-reduced-motion:no-preference){.card{animation:in .35s ease-out}@keyframes in{from{opacity:0;transform:translateY(8px)}}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <svg class="logo" viewBox="0 0 512 512" aria-hidden="true"><rect width="512" height="512" rx="112" fill="#12261b"/><circle cx="256" cy="256" r="176" fill="none" stroke="#f2b632" stroke-width="22"/><path d="M168 350V170l88 110 88-110v180" fill="none" stroke="#f2b632" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <h1>Panel Miscrits</h1>
+    <div class="status"><span class="dot" id="dot"></span><span id="stxt">Sin conectar</span><button class="gear" id="gear" aria-label="Ajustes">Ajustes</button></div>
+  </header>
+
+  <section class="panel" id="setup" hidden>
+    <h2>Conectar con tu bot</h2>
+    <p class="muted" style="margin:0 0 12px">Pegá el tema de aviso que está en <b>telefono.txt</b>, dentro de la carpeta del bot. Se guarda solo en este dispositivo.</p>
+    <form class="row" id="setupForm">
+      <input type="text" id="topicIn" placeholder="miscrits-pedro-..." autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Tema de aviso">
+      <button class="btn primary" type="submit">Conectar</button>
+    </form>
+  </section>
+
+  <section class="panel" id="settings" hidden>
+    <h2>Ajustes</h2>
+    <div class="row" style="margin-bottom:10px"><span class="muted">Tema:</span> <code id="topicShow"></code></div>
+    <div class="row">
+      <button class="btn" id="notifBtn">Activar avisos del navegador</button>
+      <button class="btn" id="changeBtn">Cambiar tema</button>
+      <button class="btn" id="clearBtn">Borrar historial</button>
+    </div>
+    <p class="muted" style="margin:10px 0 0;font-size:13px">Con la página abierta ves los avisos al instante. Para que suene con el celular bloqueado, dejá instalada la app ntfy suscripta al mismo tema: al tocar el aviso se abre este panel.</p>
+  </section>
+
+  <main>
+    <div class="alerts" id="alerts"></div>
+    <section class="panel empty" id="empty" hidden>
+      <h2>Esperando Miscrits nuevos</h2>
+      <p class="muted" style="margin:0">Cuando el bot encuentre uno que no tenés, acá aparece la foto y elegís qué hacer.</p>
+    </section>
+    <section class="panel" id="logBox" hidden>
+      <h2>Actividad del bot</h2>
+      <ul class="log" id="log"></ul>
+    </section>
+  </main>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(function(){
+'use strict';
+var BASE='https://ntfy.sh/';
+var CHOICES=[
+  {k:'auto',  t:'Que el bot lo capture', s:'Ataca suave hasta 90 % y guarda solo rango S o S+', cls:'go'},
+  {k:'manual',t:'Lo capturo yo',         s:'El bot se detiene y deja la pelea abierta', cls:''},
+  {k:'seguir',t:'Seguir peleando',       s:'Lo ignora y ataca normal', cls:''},
+  {k:'parar', t:'Parar el bot',          s:'Se detiene en este punto', cls:'stop'}
+];
+var LABEL={auto:'El bot lo captura',manual:'Lo capturás vos',seguir:'Sigue peleando',parar:'Bot detenido'};
+var KEY='panel-miscrits.v1';
+var S={topic:'',cards:[],log:[],seen:{}};
+var es=null, startedAt=Date.now();
+
+function load(){try{var j=JSON.parse(localStorage.getItem(KEY)||'{}');if(j.topic)S.topic=j.topic;if(j.cards)S.cards=j.cards;if(j.log)S.log=j.log;if(j.seen)S.seen=j.seen}catch(e){}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify({topic:S.topic,cards:S.cards.slice(0,30),log:S.log.slice(0,25),seen:S.seen}))}catch(e){}}
+function $(id){return document.getElementById(id)}
+function el(tag,cls,txt){var n=document.createElement(tag);if(cls)n.className=cls;if(txt!=null)n.textContent=txt;return n}
+function hhmm(t){return new Date(t*1000).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'})}
+function toast(msg){var t=$('toast');t.textContent=msg;t.hidden=false;clearTimeout(toast._t);toast._t=setTimeout(function(){t.hidden=true},3500)}
+
+function tagVal(tags,prefix){for(var i=0;i<tags.length;i++){if(tags[i].indexOf(prefix)===0)return tags[i].slice(prefix.length)}return null}
+
+function handle(m){
+  if(!m||m.event!=='message'||S.seen[m.id])return;
+  S.seen[m.id]=1;
+  var ks=Object.keys(S.seen);if(ks.length>200){delete S.seen[ks[0]]}
+  var tags=m.tags||[], id=tagVal(tags,'id-');
+  if(tags.indexOf('nuevo')>=0&&id){
+    var c={id:id,time:m.time,img:m.attachment&&m.attachment.url||'',blight:tags.indexOf('blight')>=0,status:'pending',choice:''};
+    S.cards=S.cards.filter(function(x){return x.id!==id});S.cards.unshift(c);
+    if(Date.now()/1000-m.time<180&&Date.now()-startedAt>1500)announce(c);
+  }else if(tags.indexOf('ack')>=0&&id){
+    var ch=tagVal(tags,'ch-');
+    S.cards.forEach(function(x){if(x.id===id){x.status='ack';x.choice=ch||x.choice}});
+  }else if(m.message){
+    S.log.unshift({time:m.time,text:m.message});
+  }
+  save();render();
+}
+
+function announce(c){
+  document.title='(1) Miscrit nuevo!';
+  try{beep()}catch(e){}
+  try{if('Notification' in window&&Notification.permission==='granted'){new Notification(c.blight?'Parece un Blighted!':'Miscrit nuevo!',{body:'Abrí el panel y elegí qué hace el bot.'})}}catch(e){}
+}
+var actx;
+function beep(){
+  actx=actx||new (window.AudioContext||window.webkitAudioContext)();
+  [880,1175,1568].forEach(function(f,i){var o=actx.createOscillator(),g=actx.createGain();o.frequency.value=f;o.connect(g);g.connect(actx.destination);
+    var t=actx.currentTime+i*0.16;g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(0.25,t+0.02);g.gain.exponentialRampToValueAtTime(0.0001,t+0.14);o.start(t);o.stop(t+0.15)});
+}
+document.addEventListener('visibilitychange',function(){if(!document.hidden)document.title='Panel Miscrits'});
+
+function choose(c,k){
+  c.status='sent';c.choice=k;save();render();
+  fetch(BASE+encodeURIComponent(S.topic)+'-resp',{method:'POST',body:c.id+'|'+k}).then(function(r){
+    if(!r.ok)throw new Error('http '+r.status);
+  }).catch(function(){c.status='pending';c.choice='';save();render();toast('No se pudo enviar la elección. Probá de nuevo.')});
+}
+
+function render(){
+  var box=$('alerts');box.textContent='';
+  var now=Date.now()/1000;
+  S.cards.forEach(function(c){
+    var open=c.status==='pending'&&now-c.time<1800;
+    var card=el('article','card'+(c.blight?' blight':''));
+    var shot=el('div','shot');
+    if(c.img){var im=new Image();im.alt='Foto del Miscrit nuevo';im.src=c.img;im.onerror=function(){shot.textContent='';shot.appendChild(el('div','gone','La foto ya venció (se guarda unas horas).'))};shot.appendChild(im)}
+    else shot.appendChild(el('div','gone','Sin foto'));
+    var body=el('div','body');
+    var top=el('div','top');top.appendChild(el('h3','',c.blight?'Parece un Blighted':'Miscrit nuevo'));
+    if(c.blight)top.appendChild(el('span','chip bl','Blighted'));
+    var st=c.status==='ack'?['done','El bot lo recibió']:c.status==='sent'?['wait','Enviando…']:open?['wait','Esperando tu elección']:['','Vencido'];
+    top.appendChild(el('span','chip '+st[0],st[1]));top.appendChild(el('span','time',hhmm(c.time)));
+    body.appendChild(top);
+    var ch=el('div','choices');
+    CHOICES.forEach(function(o){
+      var b=el('button','ch '+o.cls+(c.choice===o.k?' picked':''));b.type='button';
+      b.appendChild(el('b','',o.t));b.appendChild(el('span','',o.s));
+      b.disabled=!open;if(open)b.addEventListener('click',function(){choose(c,o.k)});
+      ch.appendChild(b);
+    });
+    body.appendChild(ch);
+    if(c.choice&&c.status!=='pending')body.appendChild(el('div','result',(LABEL[c.choice]||c.choice)+(c.status==='ack'?'. Confirmado por el bot.':'.')));
+    card.appendChild(shot);card.appendChild(body);box.appendChild(card);
+  });
+  var connected=!!S.topic;
+  $('setup').hidden=connected;
+  $('empty').hidden=!connected||S.cards.length>0;
+  var lg=$('log');lg.textContent='';
+  S.log.slice(0,6).forEach(function(l){var li=el('li');var t=el('time','',hhmm(l.time));t.dateTime=new Date(l.time*1000).toISOString();li.appendChild(t);li.appendChild(el('span','',l.text));lg.appendChild(li)});
+  $('logBox').hidden=!S.log.length;
+}
+
+function setStatus(on,txt){$('dot').className='dot '+(on===true?'on':on===false?'off':'');$('stxt').textContent=txt}
+function connect(){
+  if(es){es.close();es=null}
+  if(!S.topic){setStatus(null,'Sin conectar');return}
+  setStatus(null,'Conectando…');
+  es=new EventSource(BASE+encodeURIComponent(S.topic)+'/sse?since=12h');
+  es.onopen=function(){setStatus(true,'Conectado')};
+  es.onerror=function(){setStatus(false,'Reconectando…')};
+  es.onmessage=function(e){try{handle(JSON.parse(e.data))}catch(x){}};
+}
+
+function setTopic(t){
+  t=(t||'').replace(/\s/g,'');if(!t)return;
+  S.topic=t;S.cards=[];S.log=[];S.seen={};save();$('topicShow').textContent=t;render();connect();
+}
+
+$('setupForm').addEventListener('submit',function(e){e.preventDefault();setTopic($('topicIn').value)});
+$('gear').addEventListener('click',function(){var s=$('settings');s.hidden=!s.hidden});
+$('changeBtn').addEventListener('click',function(){S.topic='';save();if(es){es.close();es=null}setStatus(null,'Sin conectar');$('settings').hidden=true;render()});
+$('clearBtn').addEventListener('click',function(){S.cards=[];S.log=[];S.seen={};save();render()});
+$('notifBtn').addEventListener('click',function(){
+  if(!('Notification' in window)){toast('Este navegador no permite avisos.');return}
+  Notification.requestPermission().then(function(p){toast(p==='granted'?'Avisos activados.':'Avisos no permitidos.')});
+});
+setInterval(render,30000);
+
+load();
+var h=(location.hash.match(/[#&]t=([^&]+)/)||[])[1];
+if(h){S.topic=decodeURIComponent(h);save();history.replaceState(null,'',location.pathname+location.search)}
+$('topicShow').textContent=S.topic;
+render();connect();
+})();
+</script>
+</body>
+</html>
